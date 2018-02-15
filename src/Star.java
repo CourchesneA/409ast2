@@ -57,6 +57,7 @@ public class Star {
          Thread[] threadPool = new Thread[m];
          for(int i=0; i<m; i++) {
         	 threadPool[i] = new Thread(new VertexMover());
+        	 threadPool[i].start();
          }
          
          //Wait for them to finish
@@ -90,6 +91,25 @@ public class Star {
 		}
 	}
 	
+	/**
+	 * Move the vertex within the triangle made by it and its neighbors
+	 * algorithm from https://math.stackexchange.com/questions/18686/uniform-random-point-in-triangle
+	 * @param v
+	 */
+	public static void moveVertex(Vertex2D v) {
+		double r1 = rnd.nextDouble();
+		double r2 = rnd.nextDouble();
+		double x = (1 - Math.sqrt(r1)) * v.previous.x + (Math.sqrt(r1) * (1 - r2)) * v.x + (Math.sqrt(r1) * r2) * v.next.x;
+		double y = (1 - Math.sqrt(r1)) * v.previous.y + (Math.sqrt(r1) * (1 - r2)) * v.y + (Math.sqrt(r1) * r2) * v.next.y;
+		v.x = x;
+		v.y = y;
+	}
+	
+	/**
+	 * Use resource ordering to prevent deadlocks
+	 * @author anthony
+	 *
+	 */
 	static class VertexMover implements Runnable{
 
 		@Override
@@ -97,8 +117,11 @@ public class Star {
 			
 			for(int i=0; i<c; i++) {
 				//Choose random vertex v
-				Vertex2D v = vertices[rnd.nextInt(vertices.length+1)];
+				int vertexIndex = rnd.nextInt(vertices.length);
+				Vertex2D v = vertices[vertexIndex];
 				
+				moveVertex(v);
+				System.out.println("Moved");
 				//Change the position
 				//TODO
 				
