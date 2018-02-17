@@ -69,25 +69,63 @@ public class Star {
 			}
          }
          
-         
          //Scaling
-         //TODO: if there is a vertex outside the window reduce all verduce all vertex coords by half
+         //Find the coord that is the further away from center
+         double maxX = 0;
+         double maxY = 0;
+         for(int i=0; i< vertices.length; i++) {
+        	 double x = Math.abs(vertices[i].x);
+        	 double y = Math.abs(vertices[i].y);
+        	 maxX = (x > maxX) ? x : maxX;
+        	 maxY = (y > maxY) ? y : maxY;
+         }
+         //Scaling
+		 while(maxX > width/2 || maxY > height/2) {
+			 maxX/=2;maxY/=2;
+			 scaleDown();
+		 }
+		     
+		 while(maxX < width/4 && maxY < height/4) {
+			 maxX*=2;maxY*=2;
+			 scaleUp();
+		 }
          
          //Draw the polygon
          Vertex2D prev = null;
          for(int i=0; i<=vertices.length; i++) {
     		 Vertex2D v = vertices[i%vertices.length];
         	 if(prev != null) {
-        		 graphics.drawLine((int)prev.x*10+width/2, (int)prev.y*10+height/2, (int)v.x*10+width/2, (int)v.y*10+height/2);
+        		 graphics.drawLine((int)prev.x+width/2, (int)prev.y+height/2, (int)v.x+width/2, (int)v.y+height/2);
         	 }
         	 prev = v;
          }
+         
+         for(int i=0; i< vertices.length; i++) {
+        	 graphics.drawOval((int)vertices[i].x-2+width/2, (int)vertices[i].y+2+height/2, 2, 2);
+         }
+         graphics.drawOval(-2 + width/2, 2 + height/2, 4, 4);	//See origin
 
          File outputfile = new File("outputimage.png");
          try {
 			ImageIO.write(img, "png", outputfile);
 		} catch (IOException e) {
 			e.printStackTrace();
+		}
+	}
+	
+	public static void scaleDown() {
+		System.out.println("Scaled down polygon");
+		for(int i=0; i<vertices.length; i++) {
+			vertices[i].x/=2;
+			vertices[i].y/=2;
+		}
+	}
+	
+	public static void scaleUp() {
+		System.out.println("Scaled up polygon");
+		for(int i=0; i<vertices.length; i++) {
+			vertices[i].x*=2;
+			vertices[i].y*=2;
 		}
 	}
 	
@@ -121,7 +159,7 @@ public class Star {
 				Vertex2D v = vertices[vertexIndex];
 				
 				moveVertex(v);
-				System.out.println("Moved");
+				System.out.println("Moved "+vertexIndex);
 				//Change the position
 				//TODO
 				
