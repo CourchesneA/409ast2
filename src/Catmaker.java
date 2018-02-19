@@ -1,22 +1,28 @@
 import java.util.LinkedList;
 import java.util.Random;
 
+/**
+ * This class solve the problem but does not tackle any concurrency problem,
+ * those should be handled by the class that extends SynchronizedBin
+ * @author Anthony
+ *
+ */
 public class Catmaker {
-	static SynchronizedBin<Leg> forelegBin = new SynchronizedBin<Leg>();
-	static SynchronizedBin<Leg> hindlegBin = new SynchronizedBin<Leg>();
+	static SynchronizedBin<Leg> foreLegBin;
+	static SynchronizedBin<Leg> hindLegBin;
 	
-	static SynchronizedBin<Body> bodyTailBin = new SynchronizedBin<Body>();
-	static SynchronizedBin<Body> completeBodyBin = new SynchronizedBin<Body>();
-	static SynchronizedBin<Body> bodyLegBin = new SynchronizedBin<Body>();
+	static SynchronizedBin<Body> bodyTailBin;
+	static SynchronizedBin<Body> completeBodyBin;
+	static SynchronizedBin<Body> bodyLegBin;
 	
-	static SynchronizedBin<Head> headWhiskerBin = new SynchronizedBin<Head>();
-	static SynchronizedBin<Head> headEyeBin = new SynchronizedBin<Head>();
-	static SynchronizedBin<Head> completeHeadBin = new SynchronizedBin<Head>();
+	static SynchronizedBin<Head> headWhiskerBin;
+	static SynchronizedBin<Head> headEyeBin;
+	static SynchronizedBin<Head> completeHeadBin;
 		
 	static int catCount = 0;
 	static Random rnd = new Random();
 	
-	public static void main(String[] args) {
+	public static void runThreads() {
 		Thread[] threads = new Thread[] {
 				new Thread(new LegAssembler()),
 				new Thread(new LegAssembler()),
@@ -59,9 +65,9 @@ public class Catmaker {
 					l.addToe(ToeBin.getToe());
 				}
 				if(isForeleg) {
-					forelegBin.produceObject(l);
+					foreLegBin.produceObject(l);
 				}else {
-					hindlegBin.produceObject(l);
+					hindLegBin.produceObject(l);
 				}
 				sleepBetween(10, 20);
 			}
@@ -88,8 +94,8 @@ public class Catmaker {
 				LinkedList<Leg> forelegs = new LinkedList<Leg>();
 				LinkedList<Leg> hindlegs = new LinkedList<Leg>();
 				for(int i=0; i<2; i++) {
-					forelegs.add(forelegBin.consumeObject());
-					hindlegs.add(hindlegBin.consumeObject());
+					forelegs.add(foreLegBin.consumeObject());
+					hindlegs.add(hindLegBin.consumeObject());
 				}
 				idletime += System.currentTimeMillis()-t1;
 				
@@ -375,84 +381,6 @@ class EyeBin{
 class WhiskerBin{
 	public static Whisker getWhisker() {
 		return new Whisker();
-	}
-}
-
-
-
-//~~~~~~~~~~~~~~~~~~~~   Synchronized Bins   ~~~~~~~~~~~~~~~~~
-/*
-class ForelegBin{
-	LinkedList<Leg> bin = new LinkedList<Leg>();
-	
-	synchronized public void produceForeleg(Leg l) {
-		bin.add(l);
-		notify();
-		//There is no max value to the bin size so we dont need to wait
-	}
-	
-	synchronized public Leg consumeForeleg() {
-		while(bin.size() == 0) {
-			try {
-				wait();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
-		Leg f = bin.pop();
-		assert(f.getType() == LegType.FORELEG);
-		return f;
-	}
-}
-
-class HindlegBin{
-	LinkedList<Leg> bin = new LinkedList<Leg>();
-	
-	synchronized public void produceHindleg(Leg l) {
-		bin.add(l);
-		notify();
-	}
-	
-	synchronized public Leg consumeHindleg() {
-		while(bin.size() == 0) {
-			try {
-				wait();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
-		Leg h = bin.pop();
-		assert(h.getType() == LegType.HINDLEG);
-		return h;
-	}
-}
-*/
-class SynchronizedBin<T>{
-	LinkedList<T> bin = new LinkedList<T>();
-	
-	synchronized public void produceObject(T assembly) {
-		bin.add(assembly);
-		notify();
-	}
-	
-	synchronized public T consumeObject() {
-		while(bin.size() == 0) {
-			try {
-				wait();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
-		T assembly = bin.pop();
-		return assembly;
-	}
-	
-	synchronized public T tryGetObject() {
-		if(bin.size() == 0) {
-			return null;
-		}else {
-			return consumeObject();
-		}
 	}
 }
 
