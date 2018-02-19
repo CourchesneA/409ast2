@@ -8,8 +8,8 @@ import java.util.Random;
  *
  */
 public class Catmaker {
-	static SynchronizedBin<Leg> foreLegBin;
-	static SynchronizedBin<Leg> hindLegBin;
+	static SynchronizedBin<Leg> forelegBin;
+	static SynchronizedBin<Leg> hindlegBin;
 	
 	static SynchronizedBin<Body> bodyTailBin;
 	static SynchronizedBin<Body> completeBodyBin;
@@ -65,9 +65,9 @@ public class Catmaker {
 					l.addToe(ToeBin.getToe());
 				}
 				if(isForeleg) {
-					foreLegBin.produceObject(l);
+					forelegBin.produceObject(l);
 				}else {
-					hindLegBin.produceObject(l);
+					hindlegBin.produceObject(l);
 				}
 				sleepBetween(10, 20);
 			}
@@ -94,8 +94,8 @@ public class Catmaker {
 				LinkedList<Leg> forelegs = new LinkedList<Leg>();
 				LinkedList<Leg> hindlegs = new LinkedList<Leg>();
 				for(int i=0; i<2; i++) {
-					forelegs.add(foreLegBin.consumeObject());
-					hindlegs.add(hindLegBin.consumeObject());
+					forelegs.add(forelegBin.consumeObject());
+					hindlegs.add(hindlegBin.consumeObject());
 				}
 				idletime += System.currentTimeMillis()-t1;
 				

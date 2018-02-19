@@ -10,8 +10,8 @@ import java.util.LinkedList;
 public class CatmakerMonitor {
 
 	public static void main(String[] args) {
-		Catmaker.foreLegBin = new MonitorBin<Leg>();
-		Catmaker.hindLegBin = new MonitorBin<Leg>();
+		Catmaker.forelegBin = new MonitorBin<Leg>();
+		Catmaker.hindlegBin = new MonitorBin<Leg>();
 		
 		Catmaker.bodyTailBin = new MonitorBin<Body>();
 		Catmaker.completeBodyBin = new MonitorBin<Body>();

@@ -9,24 +9,13 @@ import java.util.concurrent.Semaphore;
  *
  */
 public class CatmakerSemaphore{
-	static Semaphore foreLegMutex = new Semaphore(1);
-	static Semaphore hindLegMutex = new Semaphore(1);
-	static Semaphore bodyTailMutex = new Semaphore(1);
-	static Semaphore completeBodyMutex = new Semaphore(1);
-	static Semaphore bodyLegMutex = new Semaphore(1);
-	static Semaphore headWhiskerMutex = new Semaphore(1);
-	static Semaphore headEyeMutex = new Semaphore(1);
-	static Semaphore completeHeadMutex = new Semaphore(1);
-
 
 	public static void main(String[] args) {
-		Catmaker.foreLegBin = new SemaphoreBin<Leg>();
-		Catmaker.hindLegBin = new SemaphoreBin<Leg>();
-		
+		Catmaker.forelegBin = new SemaphoreBin<Leg>();
+		Catmaker.hindlegBin = new SemaphoreBin<Leg>();
 		Catmaker.bodyTailBin = new SemaphoreBin<Body>();
 		Catmaker.completeBodyBin = new SemaphoreBin<Body>();
 		Catmaker.bodyLegBin = new SemaphoreBin<Body>();
-		
 		Catmaker.headWhiskerBin = new SemaphoreBin<Head>();
 		Catmaker.headEyeBin = new SemaphoreBin<Head>();
 		Catmaker.completeHeadBin = new SemaphoreBin<Head>();
@@ -37,32 +26,63 @@ public class CatmakerSemaphore{
 }
 
 class SemaphoreBin<T> extends SynchronizedBin<T>{
+	Semaphore mutex = new Semaphore(1);
+	Semaphore objectCount = new Semaphore(0);
 	LinkedList<T> bin = new LinkedList<T>();
 	
 	public void produceObject(T assembly) {
-		bin.add(assembly);
-		notify();
+		try {
+			mutex.acquire();
+			try {
+				bin.add(assembly);
+			}finally {
+				mutex.release();
+			}
+			objectCount.release();
+			
+		} catch (InterruptedException e) {
+			
+			e.printStackTrace();
+			System.exit(-1);
+		}
 	}
 	
 	@Override
 	public T consumeObject() {
-		while(bin.size() == 0) {
+		T assembly = null;
+		try {
+			objectCount.acquire();
+			mutex.acquire();
 			try {
-				wait();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+				assembly = bin.pop();
+			}finally {
+				mutex.release();
 			}
+		} catch (InterruptedException e1) {
+			e1.printStackTrace();
+			System.exit(-1);
 		}
-		T assembly = bin.pop();
+		assert(assembly != null);
 		return assembly;
 	}
 	
 	@Override
 	public T tryGetObject() {
-		if(bin.size() == 0) {
-			return null;
-		}else {
-			return consumeObject();
+		T assembly = null;
+		if(objectCount.tryAcquire()) {
+			try {
+				mutex.acquire();
+				try {
+					assembly = bin.pop();
+				}finally {
+					mutex.release();
+				}
+			} catch (InterruptedException e1) {
+				e1.printStackTrace();
+				System.exit(-1);
+			}
+			assert(assembly != null);
 		}
+		return assembly;
 	}
 }
