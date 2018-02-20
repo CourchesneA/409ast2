@@ -7,6 +7,11 @@ import java.util.Random;
 
 import javax.imageio.ImageIO;
 
+/**
+ * Solve the dining philosopher problem by ordering resources: lock the lowest index vertex first
+ * @author Anthony
+ *
+ */
 public class Star {
 	public static final int width = 1920;
 	public static final int height = 1080;
@@ -69,10 +74,34 @@ public class Star {
 			}
          }
          
+         //Centering - otherwise the polygon drifts off screen after some iterations
+         double maxX = vertices[0].x;
+         double minX = vertices[0].x;
+         double maxY = vertices[0].y;
+         double minY = vertices[0].y;
+         for(int i=0; i< vertices.length; i++) {
+        	 double x = vertices[i].x;
+        	 double y = vertices[i].y;
+        	 maxX = (x > maxX) ? x : maxX;
+        	 minX = (x < minX) ? x : minX;
+        	 maxY = (y > maxY) ? y : maxY;
+        	 minY = (y < minY) ? y : minY;
+         }
+         double midX = minX + (maxX-minX)/2;
+         double movX = 0 - midX;
+         double midY = minY + (maxY-minY)/2;
+         double movY = 0 - midY; 
+         
+         for(int i=0; i<vertices.length; i++) {
+        	 vertices[i].x+=movX;
+        	 vertices[i].y+=movY;
+         }
+         
+         
          //Scaling
          //Find the coord that is the further away from center
-         double maxX = 0;
-         double maxY = 0;
+         maxX = 0;
+         maxY = 0;
          for(int i=0; i< vertices.length; i++) {
         	 double x = Math.abs(vertices[i].x);
         	 double y = Math.abs(vertices[i].y);
