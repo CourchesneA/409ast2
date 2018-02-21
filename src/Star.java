@@ -3,6 +3,7 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.PriorityQueue;
 import java.util.Random;
 
 import javax.imageio.ImageIO;
@@ -44,12 +45,12 @@ public class Star {
          
          //Hard code the polygon
          vertices = new Vertex2D[]{
-        		 new Vertex2D(-1.0, 5.0), 
-        		 new Vertex2D(1.0, 2.0),
-        		 new Vertex2D(5.0, 0.0),
-        		 new Vertex2D(1.0, -2.0),
-        		 new Vertex2D(-4.0, -4.0),
-        		 new Vertex2D(-3.0, -1.0)
+        		 new Vertex2D(-1.0, 5.0,0), 
+        		 new Vertex2D(1.0, 2.0,1),
+        		 new Vertex2D(5.0, 0.0,2),
+        		 new Vertex2D(1.0, -2.0,3),
+        		 new Vertex2D(-4.0, -4.0,4),
+        		 new Vertex2D(-3.0, -1.0,5)
          };
 
          //Set previous and next for the vertices
@@ -159,23 +160,8 @@ public class Star {
 	}
 	
 	/**
-	 * Move the vertex within the triangle made by it and its neighbors
-	 * algorithm from https://math.stackexchange.com/questions/18686/uniform-random-point-in-triangle
-	 * @param v
-	 */
-	public static void moveVertex(Vertex2D v) {
-		double r1 = rnd.nextDouble();
-		double r2 = rnd.nextDouble();
-		double x = (1 - Math.sqrt(r1)) * v.previous.x + (Math.sqrt(r1) * (1 - r2)) * v.x + (Math.sqrt(r1) * r2) * v.next.x;
-		double y = (1 - Math.sqrt(r1)) * v.previous.y + (Math.sqrt(r1) * (1 - r2)) * v.y + (Math.sqrt(r1) * r2) * v.next.y;
-		v.x = x;
-		v.y = y;
-	}
-	
-	/**
 	 * Use resource ordering to prevent deadlocks
 	 * @author anthony
-	 *
 	 */
 	static class VertexMover implements Runnable{
 
@@ -183,15 +169,10 @@ public class Star {
 		public void run() {
 			
 			for(int i=0; i<c; i++) {
-				//Choose random vertex v
-				int vertexIndex = rnd.nextInt(vertices.length);
-				Vertex2D v = vertices[vertexIndex];
-				
-				moveVertex(v);
-				System.out.println("Moved "+vertexIndex);
-				//Change the position
-				//TODO
-				
+				//Move random vertex
+				int index;
+				vertices[(index = rnd.nextInt(vertices.length))].moveVertex();
+				System.out.println(Thread.currentThread().getName()+" | Moved vertex index: "+index);
 				//Sleep
 				try {
 					Thread.sleep(30);
@@ -200,19 +181,43 @@ public class Star {
 				}
 			}
 		}
-		
 	}
 }
 
 class Vertex2D{
 	public double x;
 	public double y;
+	int id;
 	public Vertex2D previous;
 	public Vertex2D next;
 	
-	public Vertex2D(double x, double y) {
+	public Vertex2D(double x, double y, int id) {
 		this.x = x;
 		this.y = y;
+		this.id = id;
+	}
+	
+	/**
+	 * Move the vertex within the triangle made by it and its neighbors
+	 * algorithm from https://math.stackexchange.com/questions/18686/uniform-random-point-in-triangle
+	 */
+	public void moveVertex() {
+		PriorityQueue<Vertex2D> pq = new PriorityQueue<Vertex2D>(3,(a,b) -> a.id - b.id);
+		pq.add(this); pq.add(this.previous); pq.add(this.next);
+		
+		synchronized(pq.poll()) {
+			synchronized(pq.poll()) {
+				synchronized(pq.poll()) {
+					//Actually move the vertex "this"
+					double r1 = Star.rnd.nextDouble();
+					double r2 = Star.rnd.nextDouble();
+					double newX = (1 - Math.sqrt(r1)) * previous.x + (Math.sqrt(r1) * (1 - r2)) * this.x + (Math.sqrt(r1) * r2) * next.x;
+					double newY = (1 - Math.sqrt(r1)) * previous.y + (Math.sqrt(r1) * (1 - r2)) * this.y + (Math.sqrt(r1) * r2) * next.y;
+					this.x = newX;
+					this.y = newY;
+				}
+			}
+		}
 	}
 	
 }

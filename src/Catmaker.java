@@ -53,7 +53,7 @@ public class Catmaker {
 	 *
 	 */
 	static class LegAssembler implements Runnable{
-		
+		double idletime = 0;
 		@Override
 		public void run() {
 			while(catCount < 250) {	//We stop at 250 total. We wont need mutex here or perfect accuracy
@@ -71,6 +71,7 @@ public class Catmaker {
 				}
 				sleepBetween(10, 20);
 			}
+			System.out.println("LegAssembler idletime = "+idletime+ "ms");
 		}
 	}
 	
